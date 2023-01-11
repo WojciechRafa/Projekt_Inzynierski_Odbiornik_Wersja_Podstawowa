@@ -15,18 +15,14 @@ void Custom_Data_IO::update() {
         Pernament_Connector::update();
     }else{
         // odbieranie
-        setBlocking(false);
-        sf::Packet recived_packet;
-        auto status = receive(recived_packet);
-        setBlocking(true);
-
-        if(status == sf::Socket::Status::Done){
-            update_recived(recived_packet);
+        sf::Packet received_packet;
+        if(receive_n_time(received_packet)){
+            update_recived(received_packet);
         }
 
         // nadawanie
         auto sended_packet = prepare_packet_to_send();
-        status = send(sended_packet);
+        auto status = send(sended_packet);
 
         // testowe wysyłanie i wyświetlanie
         static sf::Int32 data_int = 0;
@@ -179,4 +175,29 @@ bool Custom_Data_IO::get_variable_by_id_float(const std::string &name, float& va
     }
 
     return false;
+}
+
+bool Custom_Data_IO::receive_n_time(sf::Packet & received_packet) {
+    setBlocking(false);
+
+    bool was_any_good_packet = false;
+    sf::Packet local_packet;
+
+    for(int i = 0; i < max_number_of_recived_check; i++){
+        auto status = receive(local_packet);
+
+        if(status == sf::Socket::Done){
+            if(not local_packet.endOfPacket()) {
+                was_any_good_packet = true;
+                received_packet = local_packet;
+            }else{
+                break;
+            }
+
+        }else{
+            break;
+        }
+    }
+    setBlocking(true);
+    return was_any_good_packet;
 }

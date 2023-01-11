@@ -46,6 +46,9 @@ private:
 
 
     void display_recived_data();
+
+    bool receive_n_time(sf::Packet& received_packet);
+    const int max_number_of_recived_check = 10;
 };
 
 
